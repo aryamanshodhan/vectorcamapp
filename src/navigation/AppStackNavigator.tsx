@@ -1,16 +1,16 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import WelcomeScreen from '../screens/WelcomeScreen';
+import MosquitoIdentificationScreen from '../screens/MosquitoIdentificationScreen';
 
 const Stack = createNativeStackNavigator();
 
 const AppStackNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName="WelcomeScreen">
+    <Stack.Navigator initialRouteName="MosquitoIdentificationScreen">
       <Stack.Screen
-        name="WelcomeScreen"
-        component={WelcomeScreen}
+        name="MosquitoIdentificationScreen"
+        component={MosquitoIdentificationScreen}
         options={{headerShown: false}}
       />
     </Stack.Navigator>
