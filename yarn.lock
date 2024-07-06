@@ -2164,6 +2164,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-camera-roll/camera-roll@npm:^7.8.1":
+  version: 7.8.1
+  resolution: "@react-native-camera-roll/camera-roll@npm:7.8.1"
+  peerDependencies:
+    react-native: ">=0.59"
+  checksum: 45aca6d3beba88c1c5e42112e3e25776eb9b70834c1f7dd79b2db7d5433bf4f64d7ca073bee54b9b403014e70fefebb4921fbbd9e09b4db79f151a1c66fada5f
+  languageName: node
+  linkType: hard
+
 "@react-native-community/cli-clean@npm:13.6.8":
   version: 13.6.8
   resolution: "@react-native-community/cli-clean@npm:13.6.8"
@@ -9582,6 +9591,7 @@ __metadata:
     "@babel/core": ^7.20.0
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0
+    "@react-native-camera-roll/camera-roll": ^7.8.1
     "@react-native/babel-preset": 0.74.84
     "@react-native/eslint-config": 0.74.84
     "@react-native/metro-config": 0.74.84

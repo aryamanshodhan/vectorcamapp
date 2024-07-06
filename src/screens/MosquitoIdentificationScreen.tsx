@@ -5,10 +5,14 @@ import {
   Image,
   StyleSheet,
   Pressable,
+  PermissionsAndroid,
+  Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {Camera, PhotoFile, useCameraDevice} from 'react-native-vision-camera';
+import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 
 import {COLORS} from '../assets/constants/theme';
 
@@ -50,9 +54,80 @@ const MosquitoIdentificationScreen = () => {
     setCapturedImage(undefined);
   };
 
-  const continueToNextImageHandler = () => {
-    console.log('NEXT');
+  const continueToNextImageHandler = async () => {
+    if (Platform.OS === 'android') {
+      const hasPermission = await hasAndroidPermission();
+      if (!hasPermission) {
+        return;
+      }
+    }
+
+    if (capturedImage) {
+      try {
+        const photo = await CameraRoll.saveAsset(capturedImage.path, {
+          type: 'photo',
+        });
+        console.log(photo);
+        Alert.alert('Success', 'Image saved to camera roll!');
+      } catch (error) {
+        console.error('Error saving image:', error);
+        Alert.alert('Error', 'Failed to save image.');
+      }
+    }
   };
+
+  async function hasAndroidPermission() {
+    const version =
+      typeof Platform.Version === 'string'
+        ? parseInt(Platform.Version, 10)
+        : Platform.Version;
+
+    const getCheckPermissionPromise = () => {
+      if (version >= 33) {
+        return Promise.all([
+          PermissionsAndroid.check(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          ),
+          PermissionsAndroid.check(
+            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+          ),
+        ]).then(
+          ([hasReadMediaImagesPermission, hasReadMediaVideoPermission]) =>
+            hasReadMediaImagesPermission && hasReadMediaVideoPermission,
+        );
+      } else {
+        return PermissionsAndroid.check(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        );
+      }
+    };
+
+    const hasPermission = await getCheckPermissionPromise();
+    if (hasPermission) {
+      return true;
+    }
+
+    const getRequestPermissionPromise = () => {
+      if (version >= 33) {
+        return PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
+        ]).then(
+          statuses =>
+            statuses[PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES] ===
+              PermissionsAndroid.RESULTS.GRANTED &&
+            statuses[PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO] ===
+              PermissionsAndroid.RESULTS.GRANTED,
+        );
+      } else {
+        return PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        ).then(status => status === PermissionsAndroid.RESULTS.GRANTED);
+      }
+    };
+
+    return await getRequestPermissionPromise();
+  }
 
   if (cameraPermission !== 'granted') {
     return (
