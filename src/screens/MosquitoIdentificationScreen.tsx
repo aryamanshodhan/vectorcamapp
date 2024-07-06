@@ -1,14 +1,14 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
-  PermissionsAndroid,
-  Platform,
   ActivityIndicator,
   Alert,
+  Image,
+  PermissionsAndroid,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {Camera, PhotoFile, useCameraDevice} from 'react-native-vision-camera';
