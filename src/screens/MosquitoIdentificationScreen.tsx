@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  PermissionsAndroid,
   Platform,
   Pressable,
   StyleSheet,
@@ -15,31 +14,16 @@ import {Camera, PhotoFile, useCameraDevice} from 'react-native-vision-camera';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 
 import {COLORS} from '../assets/constants/theme';
+import CameraPermission from '../components/mosquito-identification/CameraPermission';
+import {hasAndroidStoragePermission} from '../util/permissions';
 
 const MosquitoIdentificationScreen = () => {
-  const [cameraPermission, setCameraPermission] = useState(
-    Camera.getCameraPermissionStatus(),
-  );
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [capturedImage, setCapturedImage] = useState<PhotoFile | undefined>(
     undefined,
   );
   const cameraRef = useRef<Camera>(null);
   const device = useCameraDevice('back')!;
-
-  useEffect(() => {
-    const verifyCameraPermission = async () => {
-      const status = await Camera.getCameraPermissionStatus();
-      if (status !== 'granted') {
-        const newStatus = await Camera.requestCameraPermission();
-        setCameraPermission(newStatus);
-      } else {
-        setCameraPermission(status);
-      }
-    };
-
-    verifyCameraPermission();
-  }, []);
 
   const captureImageHandler = useCallback(async () => {
     if (cameraRef.current) {
@@ -56,8 +40,12 @@ const MosquitoIdentificationScreen = () => {
 
   const continueToNextImageHandler = async () => {
     if (Platform.OS === 'android') {
-      const hasPermission = await hasAndroidPermission();
+      const hasPermission = await hasAndroidStoragePermission();
       if (!hasPermission) {
+        Alert.alert(
+          'Could not save image to device!',
+          'Camera roll access is required to record a session.',
+        );
         return;
       }
     }
@@ -76,120 +64,61 @@ const MosquitoIdentificationScreen = () => {
     }
   };
 
-  async function hasAndroidPermission() {
-    const version =
-      typeof Platform.Version === 'string'
-        ? parseInt(Platform.Version, 10)
-        : Platform.Version;
-
-    const getCheckPermissionPromise = () => {
-      if (version >= 33) {
-        return Promise.all([
-          PermissionsAndroid.check(
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          ),
-          PermissionsAndroid.check(
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-          ),
-        ]).then(
-          ([hasReadMediaImagesPermission, hasReadMediaVideoPermission]) =>
-            hasReadMediaImagesPermission && hasReadMediaVideoPermission,
-        );
-      } else {
-        return PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        );
-      }
-    };
-
-    const hasPermission = await getCheckPermissionPromise();
-    if (hasPermission) {
-      return true;
-    }
-
-    const getRequestPermissionPromise = () => {
-      if (version >= 33) {
-        return PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-          PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO,
-        ]).then(
-          statuses =>
-            statuses[PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES] ===
-              PermissionsAndroid.RESULTS.GRANTED &&
-            statuses[PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO] ===
-              PermissionsAndroid.RESULTS.GRANTED,
-        );
-      } else {
-        return PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        ).then(status => status === PermissionsAndroid.RESULTS.GRANTED);
-      }
-    };
-
-    return await getRequestPermissionPromise();
-  }
-
-  if (cameraPermission !== 'granted') {
-    return (
-      <View style={styles.rootContainer}>
-        <Text>Camera permission is required to use this feature.</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.rootContainer}>
-      {capturedImage ? (
-        <>
-          <Image
-            style={styles.fillScreen}
-            source={{uri: `file://${capturedImage.path}`}}
-          />
-          <Pressable
-            style={({pressed}) => [
-              styles.retakeButton,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={retakeImageHandler}>
-            <Text style={styles.retakeButtonText}>Retake</Text>
-            <Icon name="close" size={30} color={COLORS.white} />
-          </Pressable>
-          <Pressable
-            style={({pressed}) => [
-              styles.continueButton,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={continueToNextImageHandler}>
-            <Text style={styles.continueButtonText}>Continue</Text>
-            <Icon name="caret-forward" size={30} color={COLORS.white} />
-          </Pressable>
-        </>
-      ) : (
-        <Camera
-          style={styles.fillScreen}
-          photo={true}
-          device={device}
-          isActive={true}
-          ref={cameraRef}
-        />
-      )}
-      {isAnalyzing && (
-        <View style={styles.activityIndicatorContainer}>
-          <ActivityIndicator size="large" />
-        </View>
-      )}
-      {!capturedImage && (
-        <Pressable
-          style={({pressed}) => [
-            styles.captureButton,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={captureImageHandler}
-          disabled={isAnalyzing}>
-          <View style={styles.staticInnerCircle} />
-        </Pressable>
-      )}
-    </View>
+    <CameraPermission>
+      <View style={styles.rootContainer}>
+        {capturedImage ? (
+          <>
+            <Image
+              style={styles.fillScreen}
+              source={{uri: `file://${capturedImage.path}`}}
+            />
+            <Pressable
+              style={({pressed}) => [
+                styles.retakeButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={retakeImageHandler}>
+              <Text style={styles.retakeButtonText}>Retake</Text>
+              <Icon name="close" size={30} color={COLORS.white} />
+            </Pressable>
+            <Pressable
+              style={({pressed}) => [
+                styles.continueButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={continueToNextImageHandler}>
+              <Text style={styles.continueButtonText}>Continue</Text>
+              <Icon name="caret-forward" size={30} color={COLORS.white} />
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <Camera
+              style={styles.fillScreen}
+              photo={true}
+              device={device}
+              isActive={true}
+              ref={cameraRef}
+            />
+            <Pressable
+              style={({pressed}) => [
+                styles.captureButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={captureImageHandler}
+              disabled={isAnalyzing}>
+              <View style={styles.staticInnerCircle} />
+            </Pressable>
+          </>
+        )}
+        {isAnalyzing && (
+          <View style={styles.activityIndicatorContainer}>
+            <ActivityIndicator size="large" />
+          </View>
+        )}
+      </View>
+    </CameraPermission>
   );
 };
 
