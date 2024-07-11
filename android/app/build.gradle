@@ -109,11 +109,21 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation('org.pytorch:pytorch_android:1.10.0') {
+        exclude group: 'com.facebook.fbjni', module: 'fbjni-java-only'
+    }
+    implementation('org.pytorch:pytorch_android_torchvision:1.10.0') {
+        exclude group: 'com.facebook.fbjni', module: 'fbjni-java-only'
+    }
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    }
+
+    implementation("com.facebook.fbjni:fbjni:0.6.0") {
+        exclude group: 'com.facebook.fbjni', module: 'fbjni-java-only'
     }
 }
 

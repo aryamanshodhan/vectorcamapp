@@ -73,21 +73,42 @@ const MosquitoIdentificationScreen = () => {
               style={styles.fillScreen}
               source={{uri: `file://${capturedImage.path}`}}
             />
-            <ActionButton
-              onPress={retakeImageHandler}
-              buttonStyle={[styles.sessionWorkflowButton, styles.retakeButton]}>
-              <Text style={styles.sessionWorkflowButtonText}>Retake</Text>
-              <Icon name="close" size={30} color={COLORS.white} />
-            </ActionButton>
-            <ActionButton
-              onPress={continueToNextImageHandler}
-              buttonStyle={[
-                styles.sessionWorkflowButton,
-                styles.continueButton,
-              ]}>
-              <Text style={styles.sessionWorkflowButtonText}>Continue</Text>
-              <Icon name="caret-forward" size={30} color={COLORS.white} />
-            </ActionButton>
+            <View style={styles.imageContainer}>
+              <View style={styles.predictionsContainer}>
+                <View style={styles.predictionContainer}>
+                  <Text style={styles.predictionLabel}>Species</Text>
+                  <Text style={styles.predictionOutput}>Anopheles Gambiae</Text>
+                </View>
+                <View style={styles.predictionContainer}>
+                  <Text style={styles.predictionLabel}>Sex</Text>
+                  <Text style={styles.predictionOutput}>Female</Text>
+                </View>
+                <View style={styles.predictionContainer}>
+                  <Text style={styles.predictionLabel}>Abdomen Status</Text>
+                  <Text style={styles.predictionOutput}>Half Gravid</Text>
+                </View>
+              </View>
+              <View style={styles.sessionWorkflowContainer}>
+                <ActionButton
+                  onPress={retakeImageHandler}
+                  buttonStyle={[
+                    styles.sessionWorkflowButton,
+                    styles.retakeButton,
+                  ]}>
+                  <Text style={styles.sessionWorkflowButtonText}>Retake</Text>
+                  <Icon name="close" size={30} color={COLORS.white} />
+                </ActionButton>
+                <ActionButton
+                  onPress={continueToNextImageHandler}
+                  buttonStyle={[
+                    styles.sessionWorkflowButton,
+                    styles.continueButton,
+                  ]}>
+                  <Text style={styles.sessionWorkflowButtonText}>Continue</Text>
+                  <Icon name="caret-forward" size={30} color={COLORS.white} />
+                </ActionButton>
+              </View>
+            </View>
           </>
         ) : (
           <>
@@ -122,6 +143,7 @@ const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
     backgroundColor: COLORS.white,
+    justifyContent: 'flex-end',
   },
   fillScreen: {
     ...StyleSheet.absoluteFillObject,
@@ -150,19 +172,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.white + COLORS.OPACITY[50],
   },
+  imageContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    marginVertical: 20,
+  },
+  predictionsContainer: {
+    width: '50%',
+    backgroundColor: COLORS.white,
+    borderRadius: 15,
+    padding: 10,
+  },
+  predictionContainer: {
+    marginVertical: 3,
+  },
+  predictionLabel: {
+    color: COLORS.black,
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  predictionOutput: {
+    color: COLORS.black,
+    fontSize: 15,
+  },
+  sessionWorkflowContainer: {
+    justifyContent: 'space-between',
+  },
   sessionWorkflowButton: {
     width: 150,
-    height: 50,
-    position: 'absolute',
-    right: 20,
+    height: 60,
   },
   retakeButton: {
     backgroundColor: COLORS.red,
-    bottom: 110,
+    marginBottom: 10,
   },
   continueButton: {
     backgroundColor: COLORS.green,
-    bottom: 40,
+    marginTop: 10,
   },
   sessionWorkflowButtonText: {
     color: COLORS.white,
