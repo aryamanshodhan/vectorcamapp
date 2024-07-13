@@ -9,7 +9,14 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {Camera, PhotoFile, useCameraDevice} from 'react-native-vision-camera';
+import {
+  Camera,
+  PhotoFile,
+  runAtTargetFps,
+  useCameraDevice,
+  useFrameProcessor,
+} from 'react-native-vision-camera';
+import {useTextRecognition} from 'react-native-vision-camera-text-recognition';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 
 import {COLORS} from '../assets/constants/theme';
@@ -30,6 +37,7 @@ const MosquitoIdentificationScreen = () => {
   );
   const cameraRef = useRef<Camera>(null);
   const device = useCameraDevice('back')!;
+  const {scanText} = useTextRecognition();
 
   const captureImageHandler = useCallback(async () => {
     if (cameraRef.current) {
@@ -39,6 +47,21 @@ const MosquitoIdentificationScreen = () => {
       setIsAnalyzing(false);
     }
   }, [cameraRef]);
+
+  const frameProcessor = useFrameProcessor(frame => {
+    'worklet';
+
+    const TARGET_FPS = 0.5;
+    runAtTargetFps(TARGET_FPS, () => {
+      'worklet';
+      const data = scanText(frame);
+      const mosquitoID = data.resultText;
+      console.log(mosquitoID);
+      // setMosquitoCharacteristics(prevCharacteristics => {
+      //   return {...prevCharacteristics, id: mosquitoID};
+      // });
+    });
+  }, []);
 
   const retakeImageHandler = () => {
     setCapturedImage(undefined);
@@ -138,9 +161,10 @@ const MosquitoIdentificationScreen = () => {
           <>
             <Camera
               style={styles.fillScreen}
-              photo={true}
+              photo
               device={device}
-              isActive={true}
+              isActive
+              frameProcessor={frameProcessor}
               ref={cameraRef}
             />
             {!isAnalyzing && (
