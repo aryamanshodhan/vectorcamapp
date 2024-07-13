@@ -9,12 +9,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  Camera,
-  PhotoFile,
-  useCameraDevice,
-  useFrameProcessor,
-} from 'react-native-vision-camera';
+import {Camera, PhotoFile, useCameraDevice} from 'react-native-vision-camera';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 
 import {COLORS} from '../assets/constants/theme';
@@ -35,11 +30,6 @@ const MosquitoIdentificationScreen = () => {
   );
   const cameraRef = useRef<Camera>(null);
   const device = useCameraDevice('back')!;
-
-  const frameProcessor = useFrameProcessor(frame => {
-    'worklet';
-    console.log(`Frame: ${frame.width}x${frame.height} (${frame.pixelFormat})`);
-  }, []);
 
   const captureImageHandler = useCallback(async () => {
     if (cameraRef.current) {
@@ -150,7 +140,6 @@ const MosquitoIdentificationScreen = () => {
               style={styles.fillScreen}
               photo={true}
               device={device}
-              frameProcessor={frameProcessor}
               isActive={true}
               ref={cameraRef}
             />

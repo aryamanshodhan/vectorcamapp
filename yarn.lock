@@ -8177,18 +8177,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-worklets-core@npm:^1.3.3":
-  version: 1.3.3
-  resolution: "react-native-worklets-core@npm:1.3.3"
-  dependencies:
-    string-hash-64: ^1.0.3
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: bf2f0eb5852ac1e4f58e20fd5912bed46c0f2bd5a671dadb596b7edf2aa5816874c694f472adaaefdb9ef19e5355c05ceb2877946bfaa0cd081c9cc0c95aa404
-  languageName: node
-  linkType: hard
-
 "react-native@npm:0.74.2":
   version: 0.74.2
   resolution: "react-native@npm:0.74.2"
@@ -8984,13 +8972,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string-hash-64@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "string-hash-64@npm:1.0.3"
-  checksum: 79de8431b4fa3e85a2429cd52a34f7948221ff167b7a094e05d6bcfd0173474b232e0c9845c96f74b0d7b6b0c8bbe2c3532a4cacb21635293ef0cf3cc8e77f06
-  languageName: node
-  linkType: hard
-
 "string-length@npm:^4.0.1":
   version: 4.0.2
   resolution: "string-length@npm:4.0.2"
@@ -9631,7 +9612,6 @@ __metadata:
     react-native-screens: ^3.32.0
     react-native-vector-icons: ^10.1.0
     react-native-vision-camera: ^4.3.2
-    react-native-worklets-core: ^1.3.3
     react-test-renderer: 18.2.0
     typescript: 5.0.4
   languageName: unknown
