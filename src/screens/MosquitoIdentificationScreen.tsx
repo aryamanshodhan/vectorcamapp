@@ -13,12 +13,18 @@ import {Camera, PhotoFile, useCameraDevice} from 'react-native-vision-camera';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 
 import {COLORS} from '../assets/constants/theme';
+import ActionButton from '../components/ui/ActionButton';
 import CameraPermission from '../components/mosquito-identification/CameraPermission';
 import {hasAndroidStoragePermission} from '../util/permissions';
-import ActionButton from '../components/ui/ActionButton';
 
 const MosquitoIdentificationScreen = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [mosquitoCharacteristics, setMosquitoCharacteristics] = useState({
+    id: '',
+    species: '',
+    sex: '',
+    abdomenStatus: '',
+  });
   const [capturedImage, setCapturedImage] = useState<PhotoFile | undefined>(
     undefined,
   );
@@ -73,19 +79,37 @@ const MosquitoIdentificationScreen = () => {
               style={styles.fillScreen}
               source={{uri: `file://${capturedImage.path}`}}
             />
-            <View style={styles.imageContainer}>
-              <View style={styles.predictionsContainer}>
-                <View style={styles.predictionContainer}>
-                  <Text style={styles.predictionLabel}>Species</Text>
-                  <Text style={styles.predictionOutput}>Anopheles Gambiae</Text>
+            <View style={styles.imageFunctionsContainer}>
+              <View style={styles.mosquitoCharacteristicsContainer}>
+                <View style={styles.mosquitoCharacteristicContainer}>
+                  <Text style={styles.mosquitoCharacteristicLabel}>
+                    Mosquito ID
+                  </Text>
+                  <Text style={styles.mosquitoCharacteristicValue}>
+                    {mosquitoCharacteristics.id}
+                  </Text>
                 </View>
-                <View style={styles.predictionContainer}>
-                  <Text style={styles.predictionLabel}>Sex</Text>
-                  <Text style={styles.predictionOutput}>Female</Text>
+                <View style={styles.mosquitoCharacteristicContainer}>
+                  <Text style={styles.mosquitoCharacteristicLabel}>
+                    Species
+                  </Text>
+                  <Text style={styles.mosquitoCharacteristicValue}>
+                    {mosquitoCharacteristics.species}
+                  </Text>
                 </View>
-                <View style={styles.predictionContainer}>
-                  <Text style={styles.predictionLabel}>Abdomen Status</Text>
-                  <Text style={styles.predictionOutput}>Half Gravid</Text>
+                <View style={styles.mosquitoCharacteristicContainer}>
+                  <Text style={styles.mosquitoCharacteristicLabel}>Sex</Text>
+                  <Text style={styles.mosquitoCharacteristicValue}>
+                    {mosquitoCharacteristics.sex}
+                  </Text>
+                </View>
+                <View style={styles.mosquitoCharacteristicContainer}>
+                  <Text style={styles.mosquitoCharacteristicLabel}>
+                    Abdomen Status
+                  </Text>
+                  <Text style={styles.mosquitoCharacteristicValue}>
+                    {mosquitoCharacteristics.abdomenStatus}
+                  </Text>
                 </View>
               </View>
               <View style={styles.sessionWorkflowContainer}>
@@ -119,12 +143,18 @@ const MosquitoIdentificationScreen = () => {
               isActive={true}
               ref={cameraRef}
             />
-            <ActionButton
-              onPress={captureImageHandler}
-              buttonStyle={styles.captureButton}
-              disabled={isAnalyzing}>
-              <View style={styles.staticInnerCircle} />
-            </ActionButton>
+            {!isAnalyzing && (
+              <View style={styles.cameraFunctionsContainer}>
+                <Text style={styles.OCRLabel}>Mosquito ID</Text>
+                <Text style={styles.OCRText}>{mosquitoCharacteristics.id}</Text>
+                <ActionButton
+                  onPress={captureImageHandler}
+                  buttonStyle={styles.captureButton}
+                  disabled={isAnalyzing}>
+                  <Icon name="camera" size={40} color={COLORS.white} />
+                </ActionButton>
+              </View>
+            )}
           </>
         )}
         {isAnalyzing && (
@@ -142,29 +172,36 @@ export default MosquitoIdentificationScreen;
 const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
-    backgroundColor: COLORS.white,
     justifyContent: 'flex-end',
   },
   fillScreen: {
     ...StyleSheet.absoluteFillObject,
   },
+  cameraFunctionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    padding: 10,
+    paddingLeft: 20,
+    margin: 30,
+    borderRadius: 50,
+  },
+  OCRLabel: {
+    color: COLORS.black,
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  OCRText: {
+    color: COLORS.black,
+    fontSize: 20,
+  },
   captureButton: {
     width: 80,
     height: 80,
-    borderWidth: 7,
-    borderColor: COLORS.white,
+    backgroundColor: COLORS.black,
     borderRadius: 40,
-    position: 'absolute',
-    bottom: 40,
-    alignSelf: 'center',
     justifyContent: 'center',
-  },
-  staticInnerCircle: {
-    width: 50,
-    height: 50,
-    backgroundColor: COLORS.white,
-    borderRadius: 25,
-    position: 'absolute',
   },
   activityIndicatorContainer: {
     flex: 1,
@@ -172,31 +209,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.white + COLORS.OPACITY[50],
   },
-  imageContainer: {
+  imageFunctionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     marginVertical: 20,
   },
-  predictionsContainer: {
+  mosquitoCharacteristicsContainer: {
     width: '50%',
     backgroundColor: COLORS.white,
     borderRadius: 15,
     padding: 10,
+    justifyContent: 'space-evenly',
   },
-  predictionContainer: {
+  mosquitoCharacteristicContainer: {
     marginVertical: 3,
   },
-  predictionLabel: {
+  mosquitoCharacteristicLabel: {
     color: COLORS.black,
     fontWeight: 'bold',
     fontSize: 15,
   },
-  predictionOutput: {
+  mosquitoCharacteristicValue: {
     color: COLORS.black,
-    fontSize: 15,
+    fontSize: 13,
   },
   sessionWorkflowContainer: {
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
   },
   sessionWorkflowButton: {
     width: 150,
