@@ -23,6 +23,7 @@ import {COLORS} from '../assets/constants/theme';
 import ActionButton from '../components/ui/ActionButton';
 import CameraPermission from '../components/mosquito-identification/CameraPermission';
 import {hasAndroidStoragePermission} from '../util/permissions';
+import {useRunOnJS} from 'react-native-worklets-core';
 
 const MosquitoIdentificationScreen = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -48,20 +49,27 @@ const MosquitoIdentificationScreen = () => {
     }
   }, [cameraRef]);
 
-  const frameProcessor = useFrameProcessor(frame => {
-    'worklet';
-
-    const TARGET_FPS = 0.5;
-    runAtTargetFps(TARGET_FPS, () => {
-      'worklet';
-      const data = scanText(frame);
-      const mosquitoID = data.resultText;
-      console.log(mosquitoID);
-      // setMosquitoCharacteristics(prevCharacteristics => {
-      //   return {...prevCharacteristics, id: mosquitoID};
-      // });
-    });
+  const updateMosquitoCharacteristics = useRunOnJS((mosquitoID: string) => {
+    setMosquitoCharacteristics(prevState => ({
+      ...prevState,
+      id: mosquitoID,
+    }));
   }, []);
+
+  const frameProcessor = useFrameProcessor(
+    frame => {
+      'worklet';
+
+      const TARGET_FPS = 0.5;
+      runAtTargetFps(TARGET_FPS, () => {
+        'worklet';
+        const data = scanText(frame);
+        const mosquitoID = data.resultText;
+        updateMosquitoCharacteristics(mosquitoID);
+      });
+    },
+    [updateMosquitoCharacteristics],
+  );
 
   const retakeImageHandler = () => {
     setCapturedImage(undefined);
@@ -161,9 +169,9 @@ const MosquitoIdentificationScreen = () => {
           <>
             <Camera
               style={styles.fillScreen}
-              photo
+              photo={true}
               device={device}
-              isActive
+              isActive={true}
               frameProcessor={frameProcessor}
               ref={cameraRef}
             />
