@@ -11,19 +11,21 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   Camera,
+  getCameraFormat,
   PhotoFile,
   runAtTargetFps,
   useCameraDevice,
   useFrameProcessor,
 } from 'react-native-vision-camera';
 import {useTextRecognition} from 'react-native-vision-camera-text-recognition';
+import {useRunOnJS} from 'react-native-worklets-core';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 
 import {COLORS} from '../assets/constants/theme';
 import ActionButton from '../components/ui/ActionButton';
 import CameraPermission from '../components/mosquito-identification/CameraPermission';
 import {hasAndroidStoragePermission} from '../util/permissions';
-import {useRunOnJS} from 'react-native-worklets-core';
+import {detectMosquito} from '../util/mosquito-detector-wrapper';
 
 const MosquitoIdentificationScreen = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -38,6 +40,7 @@ const MosquitoIdentificationScreen = () => {
   );
   const cameraRef = useRef<Camera>(null);
   const device = useCameraDevice('back')!;
+  const format = getCameraFormat(device, [{photoResolution: 'max'}]);
   const {scanText} = useTextRecognition();
 
   const captureImageHandler = useCallback(async () => {
@@ -59,6 +62,7 @@ const MosquitoIdentificationScreen = () => {
   const frameProcessor = useFrameProcessor(
     frame => {
       'worklet';
+      detectMosquito(frame);
 
       const TARGET_FPS = 0.5;
       runAtTargetFps(TARGET_FPS, () => {
@@ -171,6 +175,7 @@ const MosquitoIdentificationScreen = () => {
               style={styles.fillScreen}
               photo={true}
               device={device}
+              format={format}
               isActive={true}
               frameProcessor={frameProcessor}
               ref={cameraRef}
