@@ -62,10 +62,14 @@ const MosquitoIdentificationScreen = () => {
   const frameProcessor = useFrameProcessor(
     frame => {
       'worklet';
-      detectMosquito(frame);
+      const YOLO_FPS = 15;
+      runAtTargetFps(YOLO_FPS, () => {
+        'worklet';
+        detectMosquito(frame);
+      });
 
-      const TARGET_FPS = 0.5;
-      runAtTargetFps(TARGET_FPS, () => {
+      const OCR_FPS = 0.5;
+      runAtTargetFps(OCR_FPS, () => {
         'worklet';
         const data = scanText(frame);
         const mosquitoID = data.resultText;
