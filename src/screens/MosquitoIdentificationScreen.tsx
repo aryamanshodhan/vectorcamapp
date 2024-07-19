@@ -13,6 +13,7 @@ import {
   Camera,
   getCameraFormat,
   PhotoFile,
+  runAsync,
   runAtTargetFps,
   useCameraDevice,
   useFrameProcessor,
@@ -40,7 +41,12 @@ const MosquitoIdentificationScreen = () => {
   );
   const cameraRef = useRef<Camera>(null);
   const device = useCameraDevice('back')!;
-  const format = getCameraFormat(device, [{photoResolution: 'max'}]);
+  const format = getCameraFormat(device, [
+    {videoResolution: 'max'},
+    {photoResolution: 'max'},
+    {photoHdr: true},
+    {videoHdr: true},
+  ]);
   const {scanText} = useTextRecognition();
 
   const captureImageHandler = useCallback(async () => {
@@ -62,8 +68,8 @@ const MosquitoIdentificationScreen = () => {
   const frameProcessor = useFrameProcessor(
     frame => {
       'worklet';
-      const YOLO_FPS = 15;
-      runAtTargetFps(YOLO_FPS, () => {
+      const YOLO_FPS = 1;
+      runAsync(frame, () => {
         'worklet';
         detectMosquito(frame);
       });
@@ -183,6 +189,7 @@ const MosquitoIdentificationScreen = () => {
               isActive={true}
               frameProcessor={frameProcessor}
               ref={cameraRef}
+              enableBufferCompression={false}
             />
             {!isAnalyzing && (
               <View style={styles.cameraFunctionsContainer}>
