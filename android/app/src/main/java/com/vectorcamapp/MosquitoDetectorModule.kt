@@ -55,11 +55,12 @@ class MosquitoDetectorModule(reactContext: ReactApplicationContext) : ReactConte
 
     companion object {
         private var yoloModel: Module? = null
+        private const val NUM_OUTPUT_FIELDS = 6
 
         private fun getDetections(output: FloatArray, numDetections: Int, threshold: Float, mosquitoClassIndex: Int): List<Map<String, Double>> {
             val detections = mutableListOf<Map<String, Double>>()
             for (i in 0 until numDetections) {
-                val offset = i * 6
+                val offset = i * NUM_OUTPUT_FIELDS
                 val x = output[offset].toDouble()
                 val y = output[offset + 1].toDouble()
                 val w = output[offset + 2].toDouble()
@@ -88,7 +89,6 @@ class MosquitoDetectorModule(reactContext: ReactApplicationContext) : ReactConte
             }
 
             return try {
-                Log.d("MosquitoDetectorModule", "${fullImage.height} ${fullImage.width}")
                 val scaledImage = Bitmap.createScaledBitmap(fullImage, 640, 640, false)
 
                 Log.d("MosquitoDetectorModule", "Starting YOLO Processing")
@@ -104,13 +104,12 @@ class MosquitoDetectorModule(reactContext: ReactApplicationContext) : ReactConte
                 } else {
                     val outputTuple: Array<IValue> = yoloModel!!.forward(IValue.from(inputTensor)).toTuple()
                     val outputTensor = outputTuple[0].toTensor()
-                    Log.d("Output Tensor", "Tensor shape: ${outputTensor.shape().contentToString()}")
                     outputs = outputTensor.dataAsFloatArray
                 }
                 Log.d("MosquitoDetectorModule", "YOLO Processing Complete")
 
-                val numDetections = outputs.size / 6
-                val detections = getDetections(outputs, numDetections, 0.5f, 0) // Example threshold and mosquito class index
+                val numDetections = outputs.size / NUM_OUTPUT_FIELDS
+                val detections = getDetections(outputs, numDetections, 0.7f, 0) // Example threshold and mosquito class index
                 val maxConfidenceDetection = detections.maxByOrNull { it["confidence"] ?: 0.0 }
                 maxConfidenceDetection?.also {
                     Log.d("Max Confidence Detection", "x: ${it["x"]}, y: ${it["y"]}, w: ${it["w"]}, h: ${it["h"]}, confidence: ${it["confidence"]}, classScore: ${it["classScore"]}")
