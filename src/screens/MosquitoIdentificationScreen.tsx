@@ -30,6 +30,7 @@ import {detectMosquito} from '../util/mosquito-detector-wrapper';
 
 const MosquitoIdentificationScreen = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [processedFrame, setProcessedFrame] = useState(null);
   const [mosquitoCharacteristics, setMosquitoCharacteristics] = useState({
     id: '',
     species: '',
@@ -42,8 +43,7 @@ const MosquitoIdentificationScreen = () => {
   const cameraRef = useRef<Camera>(null);
   const device = useCameraDevice('back')!;
   const format = getCameraFormat(device, [
-    {videoResolution: 'max'},
-    {photoResolution: 'max'},
+    {photoAspectRatio: 4 / 3},
     {photoHdr: true},
     {videoHdr: true},
   ]);
@@ -65,13 +65,21 @@ const MosquitoIdentificationScreen = () => {
     }));
   }, []);
 
+  const updateCurrentFrame = useRunOnJS(frame => {
+    setProcessedFrame(frame);
+  }, []);
+
   const frameProcessor = useFrameProcessor(
     frame => {
       'worklet';
-      const YOLO_FPS = 1;
+      const YOLO_FPS = 0.5;
       runAsync(frame, () => {
         'worklet';
-        detectMosquito(frame);
+
+        runAtTargetFps(YOLO_FPS, () => {
+          const detection = detectMosquito(frame);
+          console.log(detection);
+        });
       });
 
       const OCR_FPS = 0.5;
@@ -82,7 +90,7 @@ const MosquitoIdentificationScreen = () => {
         updateMosquitoCharacteristics(mosquitoID);
       });
     },
-    [updateMosquitoCharacteristics],
+    [updateMosquitoCharacteristics, updateCurrentFrame],
   );
 
   const retakeImageHandler = () => {
@@ -191,6 +199,12 @@ const MosquitoIdentificationScreen = () => {
               ref={cameraRef}
               enableBufferCompression={false}
             />
+            {processedFrame && (
+              <Image
+                style={styles.processedFrame}
+                source={{uri: `data:image/jpeg;base64,${processedFrame}`}}
+              />
+            )}
             {!isAnalyzing && (
               <View style={styles.cameraFunctionsContainer}>
                 <Text style={styles.OCRLabel}>Mosquito ID</Text>
@@ -299,5 +313,9 @@ const styles = StyleSheet.create({
   sessionWorkflowButtonText: {
     color: COLORS.white,
     fontSize: 20,
+  },
+  processedFrame: {
+    width: '100%',
+    height: '100%',
   },
 });

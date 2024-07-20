@@ -2165,11 +2165,11 @@ __metadata:
   linkType: hard
 
 "@react-native-camera-roll/camera-roll@npm:^7.8.1":
-  version: 7.8.1
-  resolution: "@react-native-camera-roll/camera-roll@npm:7.8.1"
+  version: 7.8.3
+  resolution: "@react-native-camera-roll/camera-roll@npm:7.8.3"
   peerDependencies:
     react-native: ">=0.59"
-  checksum: 45aca6d3beba88c1c5e42112e3e25776eb9b70834c1f7dd79b2db7d5433bf4f64d7ca073bee54b9b403014e70fefebb4921fbbd9e09b4db79f151a1c66fada5f
+  checksum: 1465566ed52b6e1478debcebc1bcaecbd6752611064d7fd5a0c4ed06deb702626ebd945c7ca664d5d070f822a4d3338e5dbb447a9acb27adb35dd77f8bfba2f9
   languageName: node
   linkType: hard
 
@@ -4308,9 +4308,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.820":
-  version: 1.4.830
-  resolution: "electron-to-chromium@npm:1.4.830"
-  checksum: fa9e98baa932a3dc3b24104c346d34459455f8caec9ac8a14630de4399cc05a998e190ddb2eb8b1abcefc08a106246b0fa4b059eae78322441a4c257e3d5455b
+  version: 1.4.831
+  resolution: "electron-to-chromium@npm:1.4.831"
+  checksum: f10dbb865f6283f506ad8f59087869b5281eaec908a85568a75353615c5f8c33a2fbd6e5d6a0974ec1598b381ce898f82561beb886a6f489543aedc924e22b98
   languageName: node
   linkType: hard
 
