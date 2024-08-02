@@ -2,12 +2,14 @@ import React, {useState, useRef, useCallback} from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Image,
   Platform,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import Svg, {Rect} from 'react-native-svg';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   Camera,
@@ -22,14 +24,24 @@ import {useTextRecognition} from 'react-native-vision-camera-text-recognition';
 import {useRunOnJS} from 'react-native-worklets-core';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 
+import type {YoloDetection} from '../types/mosquito-detection-types';
+
 import {COLORS} from '../assets/constants/theme';
 import ActionButton from '../components/ui/ActionButton';
 import CameraPermission from '../components/mosquito-identification/CameraPermission';
 import {hasAndroidStoragePermission} from '../util/permissions';
 import {detectMosquito} from '../util/mosquito-detector-wrapper';
 
+const screenWidth = Dimensions.get('window').width;
+
+const yoloWidth = 640;
+const yoloHeight = 640;
+
 const MosquitoIdentificationScreen = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [yoloCoordinates, setYoloCoordinates] = useState<
+    YoloDetection | undefined
+  >(undefined);
   const [mosquitoCharacteristics, setMosquitoCharacteristics] = useState({
     id: '',
     species: '',
@@ -56,6 +68,36 @@ const MosquitoIdentificationScreen = () => {
     }
   }, [cameraRef]);
 
+  const scaleCoordinates = (
+    detection: YoloDetection,
+    frameWidth: number,
+    frameHeight: number,
+  ): YoloDetection => {
+    [frameWidth, frameHeight] = [frameHeight, frameWidth];
+    const widthScale = frameWidth / yoloWidth;
+    const heightScale = frameHeight / yoloHeight;
+
+    detection.x =
+      (detection.x - detection.w / 2) * widthScale -
+      (frameWidth - screenWidth) / 2;
+    detection.y = (detection.y - detection.h / 2) * heightScale;
+    detection.w = detection.w * widthScale;
+    detection.h = detection.h * heightScale;
+
+    return detection;
+  };
+
+  const updateYoloCoordinates = useRunOnJS(
+    (detection: YoloDetection, frameWidth: number, frameHeight: number) => {
+      const scaledDetection = detection
+        ? scaleCoordinates(detection, frameWidth, frameHeight)
+        : undefined;
+      setYoloCoordinates(scaledDetection);
+      console.log(scaledDetection);
+    },
+    [],
+  );
+
   const updateMosquitoCharacteristics = useRunOnJS((mosquitoID: string) => {
     setMosquitoCharacteristics(prevState => ({
       ...prevState,
@@ -69,11 +111,11 @@ const MosquitoIdentificationScreen = () => {
 
       runAsync(frame, () => {
         'worklet';
-        const detection = detectMosquito(frame);
-        console.log(detection);
+        const detection = detectMosquito(frame) as YoloDetection;
+        updateYoloCoordinates(detection, frame.width, frame.height);
       });
 
-      const OCR_FPS = 1;
+      const OCR_FPS = 0.5;
       runAtTargetFps(OCR_FPS, () => {
         'worklet';
         const data = scanText(frame);
@@ -81,7 +123,7 @@ const MosquitoIdentificationScreen = () => {
         updateMosquitoCharacteristics(mosquitoID);
       });
     },
-    [updateMosquitoCharacteristics],
+    [updateMosquitoCharacteristics, updateYoloCoordinates],
   );
 
   const retakeImageHandler = () => {
@@ -120,7 +162,7 @@ const MosquitoIdentificationScreen = () => {
         {capturedImage ? (
           <>
             <Image
-              style={styles.fillScreen}
+              style={styles.mediaContainer}
               source={{uri: `file://${capturedImage.path}`}}
             />
             <View style={styles.imageFunctionsContainer}>
@@ -181,7 +223,7 @@ const MosquitoIdentificationScreen = () => {
         ) : (
           <>
             <Camera
-              style={styles.fillScreen}
+              style={styles.mediaContainer}
               photo={true}
               device={device}
               format={format}
@@ -190,22 +232,42 @@ const MosquitoIdentificationScreen = () => {
               ref={cameraRef}
               enableBufferCompression={false}
             />
-            {!isAnalyzing && (
-              <View style={styles.cameraFunctionsContainer}>
-                <Text style={styles.OCRLabel}>Mosquito ID</Text>
-                <Text style={styles.OCRText}>{mosquitoCharacteristics.id}</Text>
-                <ActionButton
-                  onPress={captureImageHandler}
-                  buttonStyle={styles.captureButton}
-                  disabled={isAnalyzing}>
-                  <Icon name="camera" size={40} color={COLORS.white} />
-                </ActionButton>
+            {yoloCoordinates !== undefined && (
+              <View style={styles.mosquitoConfidenceContainer}>
+                <Text style={styles.mosquitoConfidenceText}>{`Mosquito: ${(
+                  yoloCoordinates.confidence * 100
+                ).toFixed(2)}%`}</Text>
+              </View>
+            )}
+            <View style={styles.cameraFunctionsContainer}>
+              <Text style={styles.OCRLabel}>Mosquito ID</Text>
+              <Text style={styles.OCRText}>{mosquitoCharacteristics.id}</Text>
+              <ActionButton
+                onPress={captureImageHandler}
+                buttonStyle={styles.captureButton}
+                disabled={isAnalyzing}>
+                <Icon name="camera" size={40} color={COLORS.white} />
+              </ActionButton>
+            </View>
+            {yoloCoordinates !== undefined && (
+              <View style={styles.fillScreen}>
+                <Svg height="100%" width="100%">
+                  <Rect
+                    x={yoloCoordinates.x}
+                    y={yoloCoordinates.y}
+                    width={yoloCoordinates.w}
+                    height={yoloCoordinates.h}
+                    stroke="red"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                </Svg>
               </View>
             )}
           </>
         )}
         {isAnalyzing && (
-          <View style={styles.activityIndicatorContainer}>
+          <View style={[styles.fillScreen, styles.activityIndicatorContainer]}>
             <ActivityIndicator size="large" />
           </View>
         )}
@@ -219,10 +281,15 @@ export default MosquitoIdentificationScreen;
 const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    backgroundColor: COLORS.black,
+    justifyContent: 'space-between',
   },
   fillScreen: {
     ...StyleSheet.absoluteFillObject,
+  },
+  mediaContainer: {
+    width: '100%',
+    height: 640,
   },
   cameraFunctionsContainer: {
     flexDirection: 'row',
@@ -233,6 +300,7 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     margin: 30,
     borderRadius: 50,
+    zIndex: 1,
   },
   OCRLabel: {
     color: COLORS.black,
@@ -250,16 +318,10 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: 'center',
   },
-  activityIndicatorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.white + COLORS.OPACITY[50],
-  },
   imageFunctionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    marginVertical: 20,
+    marginVertical: 'auto',
   },
   mosquitoCharacteristicsContainer: {
     width: '50%',
@@ -299,8 +361,20 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 20,
   },
-  processedFrame: {
-    width: '100%',
-    height: '100%',
+  mosquitoConfidenceContainer: {
+    backgroundColor: COLORS.red,
+    alignSelf: 'center',
+    marginTop: 'auto',
+    padding: 8,
+  },
+  mosquitoConfidenceText: {
+    color: COLORS.white,
+    fontSize: 15,
+  },
+  activityIndicatorContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.white + COLORS.OPACITY[50],
+    zIndex: 2,
   },
 });
