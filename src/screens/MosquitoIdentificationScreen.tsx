@@ -109,10 +109,12 @@ const MosquitoIdentificationScreen = () => {
     frame => {
       'worklet';
 
+      const frameWidth = frame.width;
+      const frameHeight = frame.height;
       runAsync(frame, () => {
         'worklet';
         const detection = detectMosquito(frame) as YoloDetection;
-        updateYoloCoordinates(detection, frame.width, frame.height);
+        updateYoloCoordinates(detection, frameWidth, frameHeight);
       });
 
       const OCR_FPS = 0.5;
@@ -257,8 +259,8 @@ const MosquitoIdentificationScreen = () => {
                     y={yoloCoordinates.y}
                     width={yoloCoordinates.w}
                     height={yoloCoordinates.h}
-                    stroke="red"
-                    strokeWidth="2"
+                    stroke={yoloCoordinates.confidence > 0.8 ? 'green' : 'red'}
+                    strokeWidth="4"
                     fill="none"
                   />
                 </Svg>
