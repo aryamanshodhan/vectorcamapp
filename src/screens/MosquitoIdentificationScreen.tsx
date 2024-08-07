@@ -1,13 +1,5 @@
 import React, {useState, useRef, useCallback} from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {Alert, Image, Platform, StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   Camera,
@@ -31,11 +23,12 @@ import {
   YOLO_HEIGHT,
   YOLO_CONFIDENCE_THRESHOLD,
 } from '../assets/constants/values';
+import LoadingOverlay from '../components/loading-overlay/LoadingOverlay';
+import YoloBoundingBox from '../components/mosquito-identification/YoloBoundingBox';
 import ActionButton from '../components/ui/ActionButton';
 import CameraPermission from '../components/mosquito-identification/CameraPermission';
 import {hasAndroidStoragePermission} from '../util/permissions';
 import {detectMosquito} from '../util/mosquito-detector-wrapper';
-import YoloBoundingBox from '../components/mosquito-identification/YoloBoundingBox';
 
 const MosquitoIdentificationScreen = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -161,6 +154,7 @@ const MosquitoIdentificationScreen = () => {
   return (
     <CameraPermission>
       <View style={styles.rootContainer}>
+        {isAnalyzing && <LoadingOverlay />}
         {capturedImage ? (
           <>
             <Image
@@ -257,11 +251,6 @@ const MosquitoIdentificationScreen = () => {
             )}
           </>
         )}
-        {isAnalyzing && (
-          <View style={[styles.fillScreen, styles.activityIndicatorContainer]}>
-            <ActivityIndicator size="large" />
-          </View>
-        )}
       </View>
     </CameraPermission>
   );
@@ -274,9 +263,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.black,
     justifyContent: 'space-between',
-  },
-  fillScreen: {
-    ...StyleSheet.absoluteFillObject,
   },
   mediaContainer: {
     width: '100%',
@@ -362,11 +348,5 @@ const styles = StyleSheet.create({
   mosquitoConfidenceText: {
     color: COLORS.white,
     fontSize: 15,
-  },
-  activityIndicatorContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.white + COLORS.OPACITY[50],
-    zIndex: 2,
   },
 });
