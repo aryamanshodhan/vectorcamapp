@@ -2,14 +2,12 @@ import React, {useState, useRef, useCallback} from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   Image,
   Platform,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import Svg, {Rect} from 'react-native-svg';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   Camera,
@@ -27,15 +25,17 @@ import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import type {YoloDetection} from '../types/mosquito-detection-types';
 
 import {COLORS} from '../assets/constants/theme';
+import {
+  WINDOW_WIDTH,
+  YOLO_WIDTH,
+  YOLO_HEIGHT,
+  YOLO_CONFIDENCE_THRESHOLD,
+} from '../assets/constants/values';
 import ActionButton from '../components/ui/ActionButton';
 import CameraPermission from '../components/mosquito-identification/CameraPermission';
 import {hasAndroidStoragePermission} from '../util/permissions';
 import {detectMosquito} from '../util/mosquito-detector-wrapper';
-
-const screenWidth = Dimensions.get('window').width;
-
-const yoloWidth = 640;
-const yoloHeight = 640;
+import YoloBoundingBox from '../components/mosquito-identification/YoloBoundingBox';
 
 const MosquitoIdentificationScreen = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -74,12 +74,12 @@ const MosquitoIdentificationScreen = () => {
     frameHeight: number,
   ): YoloDetection => {
     [frameWidth, frameHeight] = [frameHeight, frameWidth];
-    const widthScale = frameWidth / yoloWidth;
-    const heightScale = frameHeight / yoloHeight;
+    const widthScale = frameWidth / YOLO_WIDTH;
+    const heightScale = frameHeight / YOLO_HEIGHT;
 
     detection.x =
       (detection.x - detection.w / 2) * widthScale -
-      (frameWidth - screenWidth) / 2;
+      (frameWidth - WINDOW_WIDTH) / 2;
     detection.y = (detection.y - detection.h / 2) * heightScale;
     detection.w = detection.w * widthScale;
     detection.h = detection.h * heightScale;
@@ -234,13 +234,14 @@ const MosquitoIdentificationScreen = () => {
               ref={cameraRef}
               enableBufferCompression={false}
             />
-            {yoloCoordinates !== undefined && (
-              <View style={styles.mosquitoConfidenceContainer}>
-                <Text style={styles.mosquitoConfidenceText}>{`Mosquito: ${(
-                  yoloCoordinates.confidence * 100
-                ).toFixed(2)}%`}</Text>
-              </View>
-            )}
+            {yoloCoordinates !== undefined &&
+              yoloCoordinates.confidence > YOLO_CONFIDENCE_THRESHOLD && (
+                <View style={styles.mosquitoConfidenceContainer}>
+                  <Text style={styles.mosquitoConfidenceText}>
+                    Ready to Capture!
+                  </Text>
+                </View>
+              )}
             <View style={styles.cameraFunctionsContainer}>
               <Text style={styles.OCRLabel}>Mosquito ID</Text>
               <Text style={styles.OCRText}>{mosquitoCharacteristics.id}</Text>
@@ -252,19 +253,7 @@ const MosquitoIdentificationScreen = () => {
               </ActionButton>
             </View>
             {yoloCoordinates !== undefined && (
-              <View style={styles.fillScreen}>
-                <Svg height="100%" width="100%">
-                  <Rect
-                    x={yoloCoordinates.x}
-                    y={yoloCoordinates.y}
-                    width={yoloCoordinates.w}
-                    height={yoloCoordinates.h}
-                    stroke={yoloCoordinates.confidence > 0.8 ? 'green' : 'red'}
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                </Svg>
-              </View>
+              <YoloBoundingBox yoloCoordinates={yoloCoordinates} />
             )}
           </>
         )}
@@ -364,9 +353,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   mosquitoConfidenceContainer: {
-    backgroundColor: COLORS.red,
+    backgroundColor: COLORS.green,
     alignSelf: 'center',
     marginTop: 'auto',
+    borderRadius: 5,
     padding: 8,
   },
   mosquitoConfidenceText: {
