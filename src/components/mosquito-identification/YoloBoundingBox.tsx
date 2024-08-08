@@ -4,6 +4,7 @@ import Svg, {Rect} from 'react-native-svg';
 
 import type {YoloDetection} from '../../types/mosquito-detection-types';
 
+import {COLORS} from '../../assets/constants/theme';
 import {YOLO_CONFIDENCE_THRESHOLD} from '../../assets/constants/values';
 
 type YoloBoundingBoxProps = {
@@ -21,8 +22,8 @@ const YoloBoundingBox: React.FC<YoloBoundingBoxProps> = ({yoloCoordinates}) => {
           height={yoloCoordinates.h}
           stroke={
             yoloCoordinates.confidence > YOLO_CONFIDENCE_THRESHOLD
-              ? 'green'
-              : 'red'
+              ? COLORS.successDark
+              : COLORS.warningDark
           }
           strokeWidth="4"
           fill="none"

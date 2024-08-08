@@ -35,7 +35,7 @@ const MosquitoIdentificationScreen = () => {
   const [yoloCoordinates, setYoloCoordinates] = useState<
     YoloDetection | undefined
   >(undefined);
-  const [mosquitoCharacteristics, setMosquitoCharacteristics] = useState({
+  const [mosquitoBionomics, setMosquitoBionomics] = useState({
     id: '',
     species: '',
     sex: '',
@@ -91,8 +91,8 @@ const MosquitoIdentificationScreen = () => {
     [],
   );
 
-  const updateMosquitoCharacteristics = useRunOnJS((mosquitoID: string) => {
-    setMosquitoCharacteristics(prevState => ({
+  const updateMosquitoBionomics = useRunOnJS((mosquitoID: string) => {
+    setMosquitoBionomics(prevState => ({
       ...prevState,
       id: mosquitoID,
     }));
@@ -115,10 +115,10 @@ const MosquitoIdentificationScreen = () => {
         'worklet';
         const data = scanText(frame);
         const mosquitoID = data.resultText;
-        updateMosquitoCharacteristics(mosquitoID);
+        updateMosquitoBionomics(mosquitoID);
       });
     },
-    [updateMosquitoCharacteristics, updateYoloCoordinates],
+    [updateMosquitoBionomics, updateYoloCoordinates],
   );
 
   const retakeImageHandler = () => {
@@ -162,13 +162,13 @@ const MosquitoIdentificationScreen = () => {
               source={{uri: `file://${capturedImage.path}`}}
             />
             <View style={styles.imageFunctionsContainer}>
-              <View style={styles.mosquitoCharacteristicsContainer}>
+              <View style={styles.mosquitoBionomicsContainer}>
                 <View style={styles.mosquitoCharacteristicContainer}>
                   <Text style={styles.mosquitoCharacteristicLabel}>
                     Mosquito ID
                   </Text>
                   <Text style={styles.mosquitoCharacteristicValue}>
-                    {mosquitoCharacteristics.id}
+                    {mosquitoBionomics.id}
                   </Text>
                 </View>
                 <View style={styles.mosquitoCharacteristicContainer}>
@@ -176,13 +176,13 @@ const MosquitoIdentificationScreen = () => {
                     Species
                   </Text>
                   <Text style={styles.mosquitoCharacteristicValue}>
-                    {mosquitoCharacteristics.species}
+                    {mosquitoBionomics.species}
                   </Text>
                 </View>
                 <View style={styles.mosquitoCharacteristicContainer}>
                   <Text style={styles.mosquitoCharacteristicLabel}>Sex</Text>
                   <Text style={styles.mosquitoCharacteristicValue}>
-                    {mosquitoCharacteristics.sex}
+                    {mosquitoBionomics.sex}
                   </Text>
                 </View>
                 <View style={styles.mosquitoCharacteristicContainer}>
@@ -190,7 +190,7 @@ const MosquitoIdentificationScreen = () => {
                     Abdomen Status
                   </Text>
                   <Text style={styles.mosquitoCharacteristicValue}>
-                    {mosquitoCharacteristics.abdomenStatus}
+                    {mosquitoBionomics.abdomenStatus}
                   </Text>
                 </View>
               </View>
@@ -238,7 +238,7 @@ const MosquitoIdentificationScreen = () => {
               )}
             <View style={styles.cameraFunctionsContainer}>
               <Text style={styles.OCRLabel}>Mosquito ID</Text>
-              <Text style={styles.OCRText}>{mosquitoCharacteristics.id}</Text>
+              <Text style={styles.OCRText}>{mosquitoBionomics.id}</Text>
               <ActionButton
                 onPress={captureImageHandler}
                 buttonStyle={styles.captureButton}
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     marginVertical: 'auto',
   },
-  mosquitoCharacteristicsContainer: {
+  mosquitoBionomicsContainer: {
     width: '50%',
     backgroundColor: COLORS.white,
     borderRadius: 15,
@@ -327,11 +327,11 @@ const styles = StyleSheet.create({
     height: 60,
   },
   retakeButton: {
-    backgroundColor: COLORS.red,
+    backgroundColor: COLORS.dangerDark,
     marginBottom: 10,
   },
   continueButton: {
-    backgroundColor: COLORS.green,
+    backgroundColor: COLORS.successDark,
     marginTop: 10,
   },
   sessionWorkflowButtonText: {
@@ -339,14 +339,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   mosquitoConfidenceContainer: {
-    backgroundColor: COLORS.green,
+    backgroundColor: COLORS.successLight,
+    borderColor: COLORS.successDark,
+    borderWidth: 3,
+    borderRadius: 5,
     alignSelf: 'center',
     marginTop: 'auto',
-    borderRadius: 5,
     padding: 8,
   },
   mosquitoConfidenceText: {
-    color: COLORS.white,
+    color: COLORS.successDark,
     fontSize: 15,
+    fontWeight: 'bold',
   },
 });
