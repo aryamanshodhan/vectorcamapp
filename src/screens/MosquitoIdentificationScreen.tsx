@@ -228,7 +228,7 @@ const MosquitoIdentificationScreen = () => {
               ref={cameraRef}
               enableBufferCompression={false}
             />
-            {yoloCoordinates !== undefined &&
+            {!!yoloCoordinates &&
               yoloCoordinates.confidence > YOLO_CONFIDENCE_THRESHOLD && (
                 <View style={styles.mosquitoConfidenceContainer}>
                   <Text style={styles.mosquitoConfidenceText}>
@@ -242,12 +242,12 @@ const MosquitoIdentificationScreen = () => {
               <ActionButton
                 onPress={captureImageHandler}
                 buttonStyle={styles.captureButton}
-                disabled={isAnalyzing}>
+                disabled={!yoloCoordinates || isAnalyzing}>
                 <Icon name="camera" size={40} color={COLORS.white} />
               </ActionButton>
             </View>
-            {yoloCoordinates !== undefined && (
-              <YoloBoundingBox yoloCoordinates={yoloCoordinates} />
+            {!!yoloCoordinates && (
+              <YoloBoundingBox boundingBox={yoloCoordinates} />
             )}
           </>
         )}
